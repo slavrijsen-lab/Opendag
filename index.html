@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maatschappijleer Arcade Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#101936;--bg:#f3f6fc;--card:#fff;--blue:#2f5bff;--mint:#12b886;--red:#f0485a;--amber:#ffb020;--mute:#6b7699;--line:#dfe5f3}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:Sora,system-ui,sans-serif;background:var(--bg);color:var(--ink);display:flex}
+#game{width:75%;padding:28px 36px;overflow:auto;display:flex;flex-direction:column}
+#board{width:25%;background:var(--ink);color:#fff;padding:24px 20px;overflow:auto}
+h1{font-size:2rem;font-weight:800;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:1.3rem;margin:0 0 14px}
+p{line-height:1.5;color:var(--mute);margin:0 0 18px}
+.box{max-width:720px;margin:auto 0}
+input#tag{font:800 2.2rem Sora,sans-serif;width:min(100%,11ch);text-align:center;text-transform:uppercase;letter-spacing:.12em;border:3px solid var(--ink);border-radius:14px;padding:8px 8px 8px 20px;background:#fff;color:var(--ink)}
+input#tag:focus-visible,button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.lv{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.lv button{font:inherit;text-align:left;padding:16px;border:2px solid var(--line);border-radius:14px;background:#fff;cursor:pointer;color:var(--ink);transition:transform .12s,border-color .12s}
+.lv button:hover:not(:disabled){transform:translateY(-3px);border-color:var(--blue)}
+.lv button:disabled{opacity:.4;cursor:not-allowed}
+.lv b{display:block;font-size:1.15rem;margin-bottom:4px}
+.lv small{color:var(--mute)}
+.top{display:flex;justify-content:space-between;align-items:center;font-weight:600;margin-bottom:10px;gap:12px}
+.pill{background:var(--ink);color:#fff;border-radius:99px;padding:4px 14px;font-size:.85rem}
+.score{font-size:1.4rem;font-weight:800;color:var(--blue)}
+#tbar{height:14px;background:var(--line);border-radius:99px;overflow:hidden;margin-bottom:22px}
+#tfill{height:100%;width:100%;background:var(--mint);border-radius:99px}
+#q{font-size:1.6rem;font-weight:800;line-height:1.25;margin:0 0 20px;letter-spacing:-.01em}
+#qimg{max-width:100%;max-height:240px;border-radius:14px;margin-bottom:18px;display:block}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ans button{font:600 1rem Sora,sans-serif;display:flex;gap:12px;align-items:center;text-align:left;padding:16px;border:2px solid var(--line);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer;min-height:68px}
+.ans button:hover:not(:disabled){border-color:var(--blue)}
+.ans i{font-style:normal;font-weight:800;background:var(--bg);width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:none}
+.ans button.ok{background:var(--mint);border-color:var(--mint);color:#fff}
+.ans button.no{background:var(--red);border-color:var(--red);color:#fff}
+.cta{font:800 1.1rem Sora,sans-serif;background:var(--blue);color:#fff;border:0;border-radius:14px;padding:16px 28px;cursor:pointer;margin-top:18px}
+.cta:disabled{opacity:.4;cursor:not-allowed}
+#fb{min-height:1.6em;margin-top:14px;font-weight:800}
+#mapwrap{max-width:380px}
+svg.map{width:100%;max-height:56vh;border-radius:14px;display:block}svg.map .c{fill:#dfe5f3}svg.map .w{fill:#bcdcf2;pointer-events:none}svg.map .b{fill:none;stroke:#fff;stroke-width:3;pointer-events:none}svg.map path[data-n]{fill:#fff;stroke:#7d8fc4;stroke-width:2;cursor:pointer;transition:fill .12s}svg.map path[data-n]:hover{fill:#cdd9ff}svg.map path.ok{fill:#12b886!important}svg.map path.no{fill:#f0485a!important}svg.map.lock path{pointer-events:none}
+.big{font-size:4rem;font-weight:800;color:var(--blue);margin:0}
+#board h3{margin:0 0 4px;font-size:1.1rem}
+#board .sub{color:#8fa0d6;font-size:.78rem;margin-bottom:14px}
+#board ol{list-style:none;margin:0;padding:0}
+#board li{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:10px;margin-bottom:4px;background:rgba(255,255,255,.06);font-weight:600}
+#board li:nth-child(1){background:var(--amber);color:var(--ink)}
+#board li .r{width:1.4em;opacity:.7}
+#board li .n{letter-spacing:.06em;font-weight:800;flex:1;overflow:hidden;text-overflow:ellipsis}
+#board li .l{font-size:.68rem;opacity:.7}
+#board li .p{font-variant-numeric:tabular-nums}
+.hide{display:none!important}
+@media(max-width:800px){body{flex-direction:column;height:auto}#game,#board{width:100%}.ans,.lv{grid-template-columns:1fr}#q{font-size:1.25rem}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main id="game">
+ <section id="s-start" class="box">
+  <h1>Maatschappijleer Quiz</h1>
+  <p>Van Helmond tot Europa. 10 vragen, 15 seconden per vraag. Hoe sneller je goed antwoordt, hoe meer punten (max 1000).</p>
+  <h2>Kies je naam (max 10 letters)</h2>
+  <input id="tag" maxlength="10" autocomplete="off" aria-label="Je naam (1 tot 10 letters)" placeholder="NAAM">
+  <div class="lv" id="lv">
+   <button data-l="easy" disabled><b>Easy</b><small>Lokaal en basis</small></button>
+   <button data-l="hard" disabled><b>Hard</b><small>Landelijk en inzicht</small></button>
+   <button data-l="ultimate" disabled><b>Ultimate</b><small>Historie, EU en ouders</small></button>
+  </div>
+ </section>
+ <section id="s-play" class="box hide" style="width:100%">
+  <div class="top"><span class="pill" id="lab"></span><span id="cnt"></span><span class="score" id="sc">0</span></div>
+  <div id="tbar"><div id="tfill"></div></div>
+  <h2 id="q"></h2>
+  <img id="qimg" class="hide" alt="">
+  <div class="ans" id="ans"></div>
+  <div id="mapwrap" class="hide"></div>
+  <div id="fb" role="status"></div>
+ </section>
+ <section id="s-end" class="box hide">
+  <p style="margin:0">Je score</p>
+  <p class="big" id="final"></p>
+  <h2 id="endmsg"></h2>
+  <button class="cta" id="again">Nog een ronde</button>
+ </section>
+</main>
+<aside id="board">
+ <h3>Leaderboard</h3>
+ <div class="sub" id="bsub">Top 15 live</div>
+ <ol id="bl"></ol>
+</aside>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* ===== FIREBASE CONFIG: vul hieronder je eigen gegevens in =====
+   1. Maak een project op console.firebase.google.com
+   2. Voeg een Web-app toe en kopieer de config hierheen
+   3. Zet Realtime Database aan (regio Europe) en zet de regels op:
+      {"rules":{"scores":{".read":true,".write":true}}}  (alleen voor school/test!)
+   Zonder config werkt de quiz met een lokaal leaderboard in deze browser. */
+const firebaseConfig = {
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",   // bv. https://jouw-project-default-rtdb.europe-west1.firebasedatabase.app
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
+};
+
+/* ===== VRAGEN: [type, vraag, opties, index juist, (afbeelding-url | kaart-antwoord)] =====
+   De volgorde van opties wordt tijdens het spelen geschud. */
+const M = (q, a) => ["map", q, a];
+const P = {
+easy: [
+["mc","Wie is de baas van de gemeente Helmond?",["Burgemeester","Koning","Premier","Politiecommissaris"],0],
+["mc","Bij welke bestuurslaag meld je een kapotte lantaarnpaal in Helmond?",["Rijksoverheid","Provincie","Gemeente","Waterschap"],2],
+M("Klik op de kaart op het land waarin Helmond ligt.","Nederland"),
+["mc","Hoe heet het gebouw waar de gemeenteraad van Helmond vergadert?",["Binnenhof","Raadhuis/Gemeentehuis","Provinsjehûs","Kasteel"],1],
+["mc","Vanaf welke leeftijd mag je in Nederland stemmen voor de gemeenteraad?",["16 jaar","18 jaar","21 jaar","12 jaar"],1],
+["img","Welk kasteel staat midden in het centrum van Helmond?",["Kasteel Helmond","Muiderslot","De Haar","Radboud"],0,"https://upload.wikimedia.org/wikipedia/commons/f/fd/Helmond_achter_4.jpg"],
+["mc","Wat is de hoofdstad van de provincie Noord-Brabant?",["Eindhoven","Tilburg","'s-Hertogenbosch (Den Bosch)","Breda"],2],
+["mc","Wat staat er in de Grondwet van Nederland?",["De schoolregels","De belangrijkste rechten en plichten","De verkeersregels","Het spoorboekje"],1],
+["mc","Wie is het staatshoofd van het Koninkrijk der Nederlanden?",["Dick Schoof","Koning Willem-Alexander","Burgemeester Blanksma","Geert Wilders"],1],
+["mc","Wat doe je als je te maken krijgt met pesten op school?",["Melden bij mentor/docent","Terug pesten","Geheim houden","School kiezen"],0],
+["mc","Welke organisatie zorgt voor de veiligheid op straat en handhaaft de wet?",["Brandweer","Politie","Ambulance","Leger"],1],
+["mc","Hoe heet het geld dat burgers verplicht aan de overheid betalen?",["Subsidie","Belasting","Donatie","Zakgeld"],1],
+["mc","Wat is de belangrijkste taak van de politie?",["Wetten maken","Wetten handhaven en beschermen","Straffen uitdelen","Lesgeven"],1],
+["mc","Welk orgaan beslist in Nederland of iemand schuldig is en straf krijgt?",["De politie","De burgemeester","De rechter","De Koning"],2],
+["mc","Wat is de vlag van Nederland van boven naar beneden?",["Rood-Wit-Blauw","Blauw-Wit-Rood","Rood-Geel-Blauw","Oranje-Wit-Blauw"],0],
+["mc","Wat betekent democratie letterlijk uit het Grieks?",["Het volk regeert","De koning beslist","De snelste wint","Rijkdom is macht"],0],
+["mc","Hoe heet de baas van de provincie?",["Burgemeester","Commissaris van de Koning","Dijkgraaf","Minister"],1],
+["mc","Welke stad is de hoofdstad van Nederland?",["Den Haag","Rotterdam","Amsterdam","Utrecht"],2],
+["mc","In welke stad zit de regering van Nederland?",["Amsterdam","Den Haag","Utrecht","Eindhoven"],1],
+["mc","Wat is een recht van elk kind in Nederland?",["Recht op onderwijs","Recht op gratis snoep","Recht op een telefoon","Recht op geen huiswerk"],0],
+["img","Welke bekende kubuswoningen staan ook in Helmond?",["Piet Blom woningen","Rietveld woningen","Rem Koolhaas huizen","Gaudí huizen"],0,"https://commons.wikimedia.org/wiki/Special:FilePath/Zicht_op_kubuswoningen_rondom_het_theater,_ontworpen_door_Piet_Blom_-_Helmond_-_20536878_-_RCE.jpg?width=900"],
+["mc","Hoe heet de volksvertegenwoordiging van een gemeente?",["Tweede Kamer","Gemeenteraad","Provinciale Staten","Europees Parlement"],1],
+["mc","Wat spreek je af in een samenleving om het veilig te houden?",["Regels en wetten","Alleen geheim overleg","Wie de sterkste is","Geen afspraken"],0],
+["mc","Welke kleur heeft het bord van een autosnelweg in Nederland?",["Groen","Blauw","Rood","Geel"],1],
+["mc","Wat is de taak van het waterschap?",["Schoon water en droge voeten","Zwemles geven","Schepen bouwen","Visvergunningen verkopen"],0],
+["mc","Wat betekent het dat Nederland vrijheid van onderwijs heeft?",["Scholen mogen zelf hun identiteit kiezen","Je hoeft niet naar school","Alles is gratis","Geen examen"],0],
+["mc","Hoe noem je een afspraak tussen de politie en jongeren bij een lichte overtreding?",["Gevangenis","Halt-straf","Werkstraf van 1 jaar","Boete van 1000 euro"],1],
+["mc","Wat is het telefoonnummer voor spoedeisende hulp (politie, brandweer, ambulance)?",["0900-8844","112","911","114"],1],
+M("Klik op de kaart op het buurland ten zuiden van Nederland.","België"),
+["mc","Wie is de baas in een klaslokaal?",["De klassenvertegenwoordiger","De docent/docente","De burgemeester","De conciërge"],1]
+],
+hard: [
+["mc","Hoeveel zetels heeft de Tweede Kamer der Staten-Generaal?",["75 zetels","150 zetels","200 zetels","100 zetels"],1],
+["mc","Hoeveel zetels heeft de Eerste Kamer (de Senaat)?",["50 zetels","75 zetels","150 zetels","100 zetels"],1],
+["mc","Welke bestuurslaag gaat over het onderhoud van provinciale wegen en natuurbeheer?",["Gemeente","Provincie","Rijksoverheid","EU"],1],
+["mc","Wie kiest de leden van de Eerste Kamer?",["De Nederlandse burgers rechtstreeks","De Provinciale Staten","De Tweede Kamer","De Koning"],1],
+["mc","Wat houdt de 'Trias Politica' (scheiding der machten) in?",["Wetgevende, uitvoerende en rechtsprekende macht zijn gescheiden","3 partijen regeren samen","De Koning heeft 3 taken","3 rechters spreken recht"],0],
+M("Klik op het land waarin Brussel ligt, waar de Europese Commissie zetelt.","België"),
+["mc","Op welke dag leest de Koning traditioneel de Troonrede voor?",["Eerste maandag van mei","Derde dinsdag van september","Laatste vrijdag van oktober","Koningsdag"],1],
+["mc","Wat staat er in de Miljoenennota?",["De wetten voor volgend jaar","Waar de overheid volgend jaar geld aan uitgeeft en binnenkrijgt","De namen van ministers","De geschiedenis van NL"],1],
+["mc","Wie vormt samen met de Koning de 'Regering'?",["De staatssecretarissen","De ministers","De Tweede Kamer","De rechters"],1],
+["mc","Wat is een kenmerk van de rechtsstaat?",["De overheid moet zich ook aan de wet houden","De politie mag alles doen","De Koning beslist de straf","Er zijn geen wetten"],0],
+["img","Welk organisatie staat voor de opkomst van de verzorgingsstaat en de belangen van werknemers?",["FNV","KVK","ING","ABN AMRO"],0,"https://en.wikipedia.org/wiki/Special:FilePath/Logo_FNV.jpg?width=900"],
+["mc","Wat betekent 'vrijheid van meningsuiting'?",["Je mag alles zeggen zonder dat de overheid je vooraf censureert","Je mag iedereen bedreigen","Je hoeft niet te luisteren","Je mag liegen in de rechtbank"],0],
+["mc","Hoe noemen we de samenwerking van ministers en staatssecretarissen?",["Kabinet","Parlement","Raad van State","Oppositie"],0],
+["mc","Wat doen 'oppositiepartijen' in de Tweede Kamer?",["Ze zitten in het kabinet","Ze controleren en bekritiseren de regering","Ze maken geen wetten","Ze stemmen nooit"],1],
+["mc","Wat is een belangrijk recht van de Tweede Kamer om wetten aan te passen?",["Recht van amendement","Recht van enquête","Recht van interpellatie","Budgetrecht"],0],
+["mc","Welke belasting betaal je direct over de aankoop van een product in de winkel?",["Inkomstenbelasting","BTW (omzetbelasting)","OZB","Erfbelasting"],1],
+["mc","Wat betekent pluralisme in een maatschappij?",["Er is ruimte voor verschillende levensovertuigingen en culturen","Iedereen is gelijk gekleed","Er is 1 partij","Geen religie toegestaan"],0],
+["mc","Welk hof kijkt of wetten in strijd zijn met Europese mensenrechten?",["EHRM te Straatsburg","Internationaal Strafhof Den Haag","Hoge Raad","Kantonrechter"],0],
+["mc","Wat is de belangrijkste taak van de Algemene Rekenkamer?",["Controleren of de overheid het geld eerlijk en nuttig uitgeeft","Belasting innen","Geld drukken","Salaris berekenen"],0],
+["mc","Hoe heet de hoogste rechtbank van Nederland voor civiel- en strafrecht?",["Rechtbank Brabant","Gerechtshof","Hoge Raad der Nederlanden","Raad van State"],2],
+["mc","Wat is een 'coalitie' in het parlement?",["Samenwerkende partijen die de regering steunen","De oppositiepartijen samen","Een gevecht in de Kamer","De Eerste Kamer"],0],
+["mc","Welke wet regelt dat de overheid transparant moet zijn over haar informatie?",["Woo (Wet open overheid)","AVG","Wetboek van Strafrecht","Leerplichtwet"],0],
+["mc","Wat houdt het motierecht van een Kamerlid in?",["Een formeel verzoek of oordeel indienen aan de regering","Een minister ontslaan","De vergadering schorsen","Vragen stellen"],0],
+["mc","Welk orgaan adviseert de regering over álle wetsvoorstellen en is de hoogste bestuursrechter?",["Raad van State","Hoge Raad","Sociaal-Economische Raad","Planbureau"],0],
+["mc","Wat betekent de 'leerplicht' in Nederland?",["Jongeren tussen 5 en 16 jaar moeten naar school","Ouders moeten lesgeven","Iedereen moet studeren","Docenten moeten leren"],0],
+["mc","Wie is verantwoordelijk voor de openbare orde tijdens een grote demonstratie in Helmond?",["Burgemeester","Officier van Justitie","Premier","Minister van Defensie"],0],
+["mc","Wat is het verschil tussen een overtreding en een misdrijf?",["Een misdrijf is een ernstiger strafbaar feit dan een overtreding","Overtreding is erger","Geen verschil","Misdrijf is alleen verkeer"],0],
+["mc","Wie beslist over het vervolgen van verdachten bij een strafbaar feit?",["Officier van Justitie (Openbaar Ministerie)","De politie","De burgemeester","Het slachtoffer"],0],
+["mc","Wat is de taak van het UWV?",["Uitkeren van geld bij werkloosheid en ondersteunen bij werk","Belasting innen","Zorgverzekering regelen","Scholen controleren"],0],
+["mc","Wat is een 'referendum'?",["Een volksraadpleging over een specifieke wet of kwestie","Een verkiezing voor de Kamer","Een toespraak van de Koning","Een debat"],0]
+],
+ultimate: [
+["mc","Welk Kamerlid/minister staat bekend als de grondlegger van de AOW (1956)?",["Joop den Uyl","Willem Drees","Ruud Lubbers","Abraham Kuyper"],1],
+["mc","Wie geldt als 'Mamma Erasmus', de bedenker van het Europese studentenprogramma?",["Ursula von der Leyen","Sofia Corradi","Simone Veil","Margaret Thatcher"],1],
+["mc","Welk land hoorde NIET bij de 6 oprichters van de EGKS in 1951?",["Nederland","Verenigd Koninkrijk","West-Duitsland","Luxemburg"],1],
+["mc","In welk verdrag (1992) werd de oprichting van de Europese Unie en de euro vastgelegd?",["Verdrag van Maastricht","Verdrag van Rome","Verdrag van Versailles","Verdrag van Lissabon"],0],
+["mc","Wat hield de 'Pacificatie van 1917' in de Nederlandse politiek in?",["Kiesrecht voor mannen en regeling voor vrijheid van onderwijs","Einde WO1","Oprichting AOW","Bouw van de Afsluitdijk"],0],
+["mc","Wie schreef in 1848 de grondwetsherziening die de macht van de Koning beperkte?",["Johan Rudolph Thorbecke","Groen van Prinsterer","Johan van Oldenbarnevelt","Herman Schaepman"],0],
+["mc","Welke Franse filosoof bedacht het concept van de 'Trias Politica'?",["Voltaire","Montesquieu","Jean-Jacques Rousseau","René Descartes"],1],
+["mc","In welk jaar werd het algemeen vrouwenkiesrecht in Nederland ingevoerd?",["1917","1919","1945","1956"],1],
+["mc","Wat is het 'Copenhagen-criterium' voor de Europese Unie?",["Voorwaarden waaraan een land moet voldoen om lid te worden van de EU","Milieueisen voor auto's","Regels voor de euro","Visserij-quota"],0],
+["mc","Welk artikel van de Nederlandse Grondwet verbiedt discriminatie op welke grond dan ook?",["Artikel 1","Artikel 7","Artikel 23","Artikel 100"],0],
+["mc","Hoe noem je het principe dat rechters in Nederland wetten NIET mogen toetsen aan de Grondwet?",["Toetsingsverbod (Art. 120 GW)","Trias Politica","Legaliteitsbeginsel","Gedoging"],0],
+["mc","Wie was de eerste vrouwelijke minister van Nederland (in 1956)?",["Marga Klompé","Suze Groeneweg","Neelie Kroes","Els Borst"],0],
+["mc","Welk Europees orgaan vertegenwoordigt de regeringen van de lidstaten (ministers)?",["Raad van de Europese Unie (Ministerraad)","Europees Parlement","Europese Commissie","Hof van Justitie"],0],
+["mc","Wat is het 'legaliteitsbeginsel' in het strafrecht?",["Je kunt alleen gestraft worden op grond van een vooraf bestaande wet","De rechter bepaalt de wet","Iedereen is schuldig tot tegendeel blijkt","Geen advocaten toegestaan"],0],
+M("Klik op het land waar het Europees Hof van Justitie zetelt.","Luxemburg"),
+["mc","Wie stelde in 1950 de Schuman-verklaring op voor de oprichting van de EGKS?",["Robert Schuman","Winston Churchill","Charles de Gaulle","Konrad Adenauer"],0],
+["mc","Hoe noemen we het recht van het volk om via een initiatief een wetsvoorstel op de agenda te zetten?",["Burgerinitiatief","Petitierecht","Amendement","Volksgericht"],0],
+["mc","Wat houdt de 'Nacht van Schmelzer' (1966) in de Nederlandse politieke historie in?",["De val van het kabinet-Cals door een motie van de KVP","De bouw van de Berlijnse Muur","De oprichting van D66","Een grote stroomstoring"],0],
+["mc","Welk verdrag regelde het wegvallen van de grenscontroles tussen veel Europese landen?",["Akkoord van Schengen (1985)","Verdrag van Parijs","NAVO-verdrag","Raad van Europa"],0],
+["mc","Welke instantie reguleert het monetaire beleid en de rente voor de eurozone?",["Europese Centrale Bank (ECB) te Frankfurt","De Nederlandsche Bank","Wereldbank","IMF"],0],
+["mc","Wie was de langstzittende premier van Nederland vóór Mark Rutte?",["Ruud Lubbers","Willem Drees","Jan Peter Balkenende","Joop den Uyl"],0],
+["mc","Wat is de taak van het 'Europees Parlement'?",["Medewetgever en budgetcontroleur van de EU (samen met de Raad)","Rechters benoemen","Belasting innen","Het leger aansturen"],0],
+["mc","Wat houdt het principe van 'subsidiariteit' in de EU in?",["Besluiten worden zo laag mogelijk (dicht bij de burger) genomen, tenzij het niet anders kan","Al het geld gaat naar landbouw","De EU beslist alles","Subsidie voor elk land"],0],
+["mc","Hoe heet het verschijnsel waarbij parlementsleden hun eigen fractie verlaten maar hun zetel behouden?",["Afsplitsing (zetelroof)","Censuur","Impeachment","Desertie"],0],
+["mc","Welke Nederlandse staatsman wordt de 'Vader des Vaderlands' genoemd?",["Willem van Oranje","Johan de Witt","Maurits van Nassau","Koning Willem I"],0],
+["mc","Wat regelt het EHRM (Europees Hof voor de Rechten van de Mens)?",["Klachten van burgers over schending van het EVRM door hun overheid","Handelsgeschillen","Voetbaltransfers","Oorlogsmisdaden"],0],
+["mc","Wat is het 'kiesdistrictenstelsel' (zoals in de VS en het VK) in vergelijking met het Nederlandse stelsel?",["De winnaar per district krijgt de zetel (winner takes all)","Evenredige vertegenwoordiging","Geen partijen toegestaan","Alleen lokale raden"],0],
+["mc","Wat was het hoofddoel van de oprichting van de EGKS in 1951?",["Kolen en staal gezamenlijk beheren om nieuwe oorlog tussen Frankrijk en Duitsland te voorkomen","Eén munteenheid maken","Grenzen sluiten","Onderwijs verbeteren"],0],
+["img","Welk iconisch gebouw van het Europees Parlement staat in Straatsburg?",["Louise Weiss-gebouw","Berlaymont","Justus Lipsius","Europa-gebouw"],0,"https://images.ctfassets.net/i01duvb6kq77/1Hh7exKSVPkC2ObIcBXys8/4b056e6b1871419eee373fa23afb746d/VII4.jpg?w=1100&q=80"],
+["mc","Wat is 'monisme' in een politiek systeem?",["Nauwe verwevenheid tussen regering en parlementaire meerderheid","Scheiding der machten","Eén partij aan de macht","Geen grondwet"],0]
+]};
+
+/* ===== SVG KAART (Benelux, uitgekleed zonder plaatsnamen): data-n = antwoord ===== */
+const MAP = `<svg class="map" id="map" viewBox="0 0 1367 1769" role="img" aria-label="Kaart van Nederland, België en Luxemburg"><rect class="c" width="1367" height="1769"/><g transform="translate(88.06 864.2)"><path class="w" d="m 277.5,-935 -445.3,5.4 0,887.7 93.1,226.2 33.4,-4.8 c -2e-6,0 21.6,-8.5 33.4,-11.1 10.7,-2.4 33.2,-11.4 42.8,-17.7 9.5,-6.4 58.1,-35.8 58.1,-35.8 0,0 8.1,-8.1 8.1,-8.1 0,0 5.1,-0.5 5.1,-0.5 0,0 29.3,-17.2 29.3,-17.2 -1e-5,0 6.6,-7.6 6.6,-7.6 0,10e-7 26.3,-9.6 26.3,-9.6 0,2e-6 3,-7.6 3,-7.6 1e-5,10e-7 9.1,4.6 9.1,4.6 0,-10e-7 31,-11 35.3,-13.1 4.4,-2.1 14.5,-8.6 14.5,-8.6 l 14.2,-4.4 c 0,10e-7 11.3,-8.4 22.5,-3.6 C 277.9,43.9 285.7,50 285.7,50 c 10e-6,0 6.8,0.2 19.5,8.2 12.7,7.9 12.5,7.7 25.2,7.7 6.4,0 9.5,4.4 17.2,2.6 C 355.5,66.7 367.8,58.6 371,55.5 377.4,49.1 376.7,38 376.7,38 c -10e-6,0 12.1,4 14.3,12.7 3.2,12.7 22.2,14.3 22.2,14.3 L 426,60.2 l 3.2,-11.1 6.3,0 4.8,6.3 c 0,10e-7 12.7,0 9.5,-9.5 C 446.7,36.4 426,38 426,38 c 0,0 -9.5,0 -17.5,0 -7.9,0 -14.3,-9.6 -14.3,-9.6 l -11.1,-4.9 c 0,1e-6 -2.5,-8.3 -8.9,-3.5 -6.4,4.8 -9.5,6.2 -9.5,6.2 l -7.9,19.1 -16.5,2.8 C 330.9,49.6 320.8,36.6 320.8,36.6 L 314.1,37.8 311.4,29.5 l -9.4,-7.4 1.2,-5 -4.5,-1.2 -6.8,6.6 c 0,0 -5.4,2.2 -15,2.2 -9.5,1e-6 -14.8,-10.5 -19.5,-16.9 -4.8,-6.4 -17.3,-17.5 -17.3,-17.5 -1e-5,-3e-7 -9.3,-7.5 11.3,-17.1 20.7,-9.5 20.5,-12.5 20.5,-12.5 10e-6,0 12.2,2 17.7,1.5 5.5,-0.5 8.3,-2.8 13.8,-2 11.1,1.6 23.5,-0.2 23.5,-0.2 10e-6,2e-6 16.1,-5.7 22.5,0.7 6.4,6.4 8.2,12.1 8.2,12.1 L 351.5,-20.6 333.1,-20.8 317.2,-22 l -9.8,8.4 -5.4,-9.9 -9.5,-5.8 c -10e-6,0 8.1,20.1 13.3,21.7 5.2,1.6 9.5,-13.2 16.7,-11.3 7.2,1.9 4.6,1 10.8,2 3.1,0.5 2.5,-3.4 7.4,-3.6 4.9,-0.1 15.4,3.5 16.4,2.9 7.9,-4.8 11.8,6.4 11.8,6.4 l 15.9,4.8 c 10e-6,-2e-7 11.1,-1.6 15.9,11.1 4.8,12.7 2.1,26.1 21.2,26.1 9.5,0 9.4,-3.1 15.3,-4.7 6,-1.6 16.7,5.1 18.3,0.3 1.6,-4.8 5.5,-8.1 1.4,-14.9 -4.2,-6.8 -20.2,-14.7 -26.6,-17.1 -12.7,-4.8 -26.4,-3 -26.4,-3 0,10e-8 0.5,-3.2 -7.4,-11.1 -4,-4 -12.2,-6.8 -14.2,-10.1 -2,-3.3 -0.1,-7 -0.1,-7 l 21.2,-7.6 7.3,0.4 6.3,3.8 13.9,-0.2 4.8,5.4 -0.7,-7.9 -6.5,-1.9 -10,-0.1 -0.2,-0 -4.1,-6.1 L 411.5,-52.5 l 0,-4.8 4.7,-4.1 8.1,1.4 13.5,7.4 19,1.3 12.8,-7.4 5.4,0.7 8.1,-4.8 3.4,-8.1 7.4,-6.8 6.1,0 9.5,5.4 10.8,-2 14.9,0 13.5,-8.8 12.9,-4.7 17.6,0 8.1,2 5.4,3.4 12.2,-2 0,-5.4 3.4,-3.4 -4.1,-3.4 5.4,-4.1 -6.1,-2 -5.4,2.7 -0.7,-3.4 -8.8,0.7 -1.3,3.4 -2.7,-2 -5.4,2 -6.8,3.4 -8.1,0.7 -4.7,-1.3 0,-4.1 -6.1,5.4 -9.5,6.8 -10.8,5.4 -8.8,2.7 -15.6,-4.1 -14.9,-2 c 10e-6,-2e-6 -10.2,-6.1 -12.9,-8.1 -2.7,-2 -4.1,-3.4 -7.4,-5.4 -3.4,-2 -18.9,-6.1 -18.9,-6.1 l -5.4,-3.4 -6.1,-9.5 -8.1,-5.4 -9.5,-6.8 -7.4,0 -7.4,-3.4 -4.1,-4.7 -6.1,1.3 4.1,-6.1 -5.4,-11.5 -4.1,-4.1 5.4,-10.8 -5.4,-5.4 -4.8,-10.2 3.4,-10.8 8.1,-2 7.5,2.7 -2,6.8 -0.7,9.5 6.8,-7.4 3.4,-4.1 2.7,2.7 0,5.4 4,-3.4 4.8,4.1 1.3,4.7 6.8,3.4 8.1,7.4 0,-5.4 9.5,8.1 14.9,6.1 10.8,-2.7 10.2,-2 -9.5,-2.7 -6.8,3.4 -9.5,-1.3 -9.5,-3.4 -9.5,-10.8 -12.2,-8.1 -15.6,-12.2 -4.8,-1.4 4.8,-4.1 5.4,-3.4 8.1,-13.5 L 452.1,-242 462.2,-254.9 l 9.5,-9.5 16.2,-23.7 18.3,-31.8 26.4,-60.2 4.1,-15.6 4.1,-15.6 4.8,-19.7 4.1,-18.2 2.7,-31.8 2.7,-26.4 4.1,-18.3 5.4,-8.8 8.1,-31.1 c 3e-5,-2e-5 2.7,-12.2 2.7,-14.9 -2e-5,-2.7 0,-17.6 0,-17.6 l 2,-8.8 8.1,-1.4 12.8,1.4 -1.3,8.1 2,8.8 3.4,6.1 10.2,4.8 6.8,2 9.5,-3.4 6.8,-5.4 c -3e-5,-10e-6 -2,-5.4 1.3,-6.1 3.4,-0.7 9.5,-3.4 9.5,-3.4 l 9.5,0.7 4.1,5.4 16.2,31.8 -2.7,27.8 c 0,-3e-5 1.4,1.3 2,4 0.7,2.7 4.8,8.1 4.8,8.1 l 2.7,4.1 6.8,2 5.4,-8.1 7.4,0.7 c -3e-5,0 0,1.4 5.4,2 5.4,0.7 8.1,1.3 8.1,1.3 l 4.1,2 -0.7,9.5 3.4,5.4 -5.4,4.1 0,4.7 -8.8,-0.7 -1.3,10.1 -11.5,11.5 -4.8,0 -4.8,4.7 -8.1,0.7 -2,-4.1 -4.1,-0.7 -4.8,-4.1 -4.8,2 -4,-0.7 -6.8,6.1 c 10e-6,10e-6 -5.4,1.3 -1.3,3.4 4.1,2 1.3,9.5 1.3,9.5 l 3.4,8.1 c -10e-6,-10e-6 -6.7,1.4 -2.7,2 4.1,0.7 4.7,4.1 4.7,4.1 l 6.8,15.6 4.1,6.1 0,4.1 -6.1,4.7 0,4.1 1.3,4.1 -6.1,0.7 0.7,9.5 11.5,2 -4.8,4.8 -1.3,6.8 -8.8,4.1 -2,5.4 -2.7,2.7 -2.7,2.7 -4.7,0 -8.1,-4.1 -6.8,0 -5.4,-2.7 -4.8,-6.8 -8.8,-5.4 c 3e-5,0 -4.7,2.7 -2,2 2.7,-0.7 8.8,7.5 8.8,7.5 l 6.8,6.1 11.5,3.4 7.4,2.7 0.7,7.5 6.8,3.4 c -3e-5,-10e-6 4.7,-4.1 4.7,-1.3 2e-5,2.7 2,3.4 2,3.4 l 11.5,-2 9.5,6.8 10.1,9.5 10.8,-2.7 10.2,0 8.8,2.7 5.4,7.4 6.8,5.4 8.8,0.7 c 3e-5,0 6.8,10.2 10.8,10.2 4.1,-10e-6 16.2,-3.4 16.2,-3.4 l 9.5,-4 5.4,0 6.1,-6.8 6.1,-18.9 5.4,-4.1 8.8,-8.8 4.8,-4.8 2,0 8.1,-6.1 10.1,-2 25.1,-21 1.3,-9.5 4.8,-10.8 2,-6.1 2.7,-9.5 -2.7,-13.5 -3.4,5.4 2,15.6 -5.4,12.8 -11.5,15.6 -10.2,9.5 -4.8,0 -6.8,2 -19.6,12.2 -4.1,8.1 -10.2,-1.3 -7.4,5.4 2.7,10.8 -6.8,20.3 -26.4,9.5 -14.9,-11.5 -16.9,-13.5 -18.9,-7.4 -13.5,1.3 -5.4,-0.7 -7.5,-8.8 0,-8.8 7.5,-6.8 12.8,-10.8 8.8,-2 2,-2.7 31.1,-25.1 8.8,-2.7 L 756.7,-420 c -10e-6,-10e-6 -0.7,-6.1 2,-8.8 2.7,-2.7 8.8,-7.4 8.8,-7.4 l 5.4,0 9.5,-12.2 c -10e-6,10e-6 5.4,-4.7 8.8,-5.4 3.4,-0.7 4.8,-2.7 11.5,-2.7 6.8,-10e-6 5.4,2 11.5,2.7 6.1,0.7 20.3,6.1 20.3,6.1 l 8.1,2 10.8,0.7 4.1,5.4 2.7,-3.4 -1.3,-8.8 1.3,-6.1 7.5,-4.1 9.5,-1.3 c 3e-5,10e-6 -4.1,4.1 2,4.1 6.1,-10e-6 7.4,-6.1 10.8,-6.1 3.4,10e-6 8.8,-0.7 8.8,-0.7 l 6.8,-3.4 0,-4.1 -8.1,-5.4 -6.8,8.1 -25.7,8.1 -8.8,4.7 -42.6,-1.3 -14.9,-19.6 -2.7,0 c 2e-5,10e-6 0,-23 0,-25.7 2e-5,-2.7 0,-19 0,-19 l 18.3,-28.4 10.2,-0.7 1.3,-3.4 -11.5,0 -2.7,-3.4 -2.7,-3.4 -6.8,3.4 -6.8,0 L 790.5,-554 l -5.4,2 -8.8,-2.7 -11.5,-6.1 -4.8,0 -6.8,4.1 -17.6,-14.9 c 3e-5,-10e-6 -2.7,-4.1 0,-5.4 2.7,-1.4 8.8,-4.7 8.8,-4.7 l 4.1,-2 0,-6.1 -2.7,-8.1 3.4,-2 1.3,-6.8 -4.1,-12.9 2,-10.2 -8.8,-22.3 4.8,-0.7 -2.7,-6.1 c 10e-6,0 -1.4,-2.7 0,-6.1 1.4,-3.4 6.1,-6.1 6.1,-6.1 l 2.7,-18.9 2.7,-12.2 6.1,-12.2 11.5,-8.8 12.8,-8.1 c -10e-6,-2e-5 5.4,-11.5 9.5,-13.6 4.1,-2 8.1,-4.7 11.5,-4.7 3.4,2e-5 11.5,-2.7 11.5,-2.7 10e-6,2e-5 8.8,-7.4 13.5,-8.1 4.7,-0.7 13.5,-4.7 13.5,-4.7 l 17.6,-10.2 12.2,-6.1 6.1,-2 22.3,-6.8 18.3,-2.7 12.9,2 8.1,-2.7 -4.1,6.1 -0.7,6.1 c 2e-5,-2e-5 2.7,2 1.3,4.8 -1.4,2.7 1.4,9.5 1.4,9.5 l 4.7,6.8 6.1,0.7 -7.4,-6.8 2,-4 4.8,2.7 c 2e-5,2e-5 3.4,-4.1 4,-1.3 0.7,2.7 -2,5.4 1.4,5.4 3.4,2e-5 -3.4,-3.4 7.4,-1.3 10.8,2 10.2,4.1 10.2,4.1 l 3.4,2.7 6.8,5.4 -4.1,-6.8 -5.4,-5.4 -7.5,-2.7 -8.1,-0.7 0.7,-5.4 0.7,-4.1 -4.8,0 -5.4,-2.7 c -10e-6,2e-5 2.7,-1.4 0,-1.4 -2.7,10e-6 -5.4,0 -5.4,0 l 2.7,-4.1 -4.1,-0.7 2,-4.8 c 10e-6,-10e-6 3.4,2 6.1,4.8 2.7,2.7 9.5,1.3 9.5,1.3 l -6.8,-3.4 -3.4,-4.1 c 2e-5,-10e-6 4.7,-1.4 7.4,-2 2.7,-0.7 7.4,-0.7 7.4,-0.7 l 8.8,5.4 c -10e-6,-10e-6 -0.7,2.7 2,2 2.7,-0.7 4.8,-1.3 11.5,-5.4 6.8,-4.1 8.8,-2.7 8.8,-2.7 l 13.5,-1.4 c 9e-4,10e-6 7.5,-4.1 10.8,-4.1 3.4,0 6.8,0.7 13.5,0 6.8,-0.7 9.5,-4.7 12.2,-4.7 2.7,10e-6 16.9,-6.8 16.9,-6.8 l 10.8,-4.1 12.2,-2 c 1e-4,10e-6 7.4,6.1 10.8,6.1 3.4,0 1.4,-5.4 4.8,-4.1 3.4,1.4 4.1,2.7 8.1,4.1 4.1,1.4 8.8,4.1 8.1,6.8 -0.7,2.7 -0.7,10.8 -0.7,10.8 l 2.7,4.8 2.7,10.8 c 0,-10e-6 -3.4,8.1 0,8.1 3.4,10e-6 10.2,6.8 10.2,6.8 0,10e-6 -1.4,5.4 1.3,6.1 2.7,0.7 -0.7,-3.4 10.8,1.3 11.5,4.7 5.4,4.7 12.2,6.1 6.8,1.4 9.5,2.7 9.5,2.7 l 3.4,8.1 c 0,10e-6 -4.1,3.4 -0.7,4.8 3.4,1.4 5.4,6.8 5.4,6.8 0,10e-6 4.7,-2 8.1,-0.7 3.4,1.4 6.1,1.3 12.2,3.4 6.1,2 10.8,-3.4 10.8,-3.4 l 2.7,-12.2 -0.7,-5.4 2.7,-7.4 c 0,10e-6 -2.1,-3.4 0.7,-4.1 2.7,-0.7 10.8,-0.7 10.8,-0.7 l 10.8,2 4.1,3.4 1.4,-2 -6.1,-5.4 -5.4,0 -4.1,-1.3 -6.8,0.7 -10.2,-2.7 -7.4,0.7 -8.1,-0.7 -25,0 -2.7,-2 -4.1,1.3 -4.1,-0.7 -4.8,-8.8 3.4,-9.5 -0.7,-5.4 -1.3,-10.1 4.1,-19.6 0,-8.1 6.1,-10.2 5.4,-4.1 8.1,4.1 2.7,-2.7 -3.4,-4.1 6.1,2 5.4,-5.4 -2,-3.4 -1.3,-2 -7.4,-6.1 -5.4,-2.7 0,-6.1 7.5,-7.4 6.8,-5.4 11.5,-14.2 9.5,-8.1 11.5,-4.8 2,-2 c 0,0 7.4,-2.7 11.5,-2.7 4.1,-10e-6 15.6,2 15.6,2 l 18.3,-2.7 11.5,6.8 14.2,-4.8 0,-21.7 -1010.5,-1.3 z m 692.4,100.2 8.8,0 2,1.3 -1.3,3.4 -13.5,3.4 -2.7,4.8 -12.2,2 -14.2,1.3 -7.5,8.1 -2,-9.5 5.4,-6.8 4.1,-2.7 17.6,-3.4 15.6,-2 z m -165.1,17.6 14.9,4.8 27.1,-1.4 29.8,-3.4 9.5,0 2.7,3.4 -5.4,2.7 -8.1,-1.3 -8.1,3.4 -16.2,5.4 -21.7,-2.7 -6.1,5.4 -6.1,2 -9.5,0 -6.1,-4.1 -1.3,-6.8 4.8,-7.4 z m -21.7,6.8 6.8,1.3 1.3,2 -6.1,1.3 -4.7,5.4 -6.1,-0.7 -2,4.1 -6.1,2 -4.8,5.4 -18.2,0.7 -8.8,8.8 -13.5,2.7 -8.8,2 -10.1,2 0,5.4 -10.2,5.4 -5.4,-7.4 0,-4.7 8.1,-5.4 2.7,-7.4 6.8,-2 21.7,-1.3 31.1,-11.5 26.4,-8.1 z m -121.1,61.6 8.1,0 2,2 -2,2.7 -6.1,0.7 -4.1,4.1 -15.6,6.1 -4.1,2 2.7,6.8 -11.5,6.1 -4.1,7.4 -14.2,-0.7 -2,-2 6.8,-4.8 2.7,-0.7 12.2,-8.8 3.4,-6.8 25.7,-14.2 z m -53.2,51.2 5.8,3.8 1.9,5.8 3.8,1.9 4.8,10.5 -2.9,1.9 -0.9,20.1 -15.3,19.1 -3.8,1 L 594.4,-623 l -7.7,-1 -1,6.7 -8.6,1.9 -4.8,-10.5 1.9,-12.4 2.9,-10.5 19.1,-31.6 12.4,-17.2 z m -231.1,556.6 11,0 -0.5,2.9 6.7,3.3 3.8,-0.9 -0.5,3.3 34.5,20.1 3.3,-0.5 0,2.9 11,9.1 4.3,6.7 8.1,6.7 4.3,0 4.3,4.3 8.6,1.4 c 0,0 3.4,-1.9 5.8,-2.9 2.4,-1 4.8,1.9 4.8,1.9 l 0,4.8 -5.8,2.8 -1.4,3.8 -2.9,4.8 -11.5,2.9 c 0,0 -7.2,1.4 -9.6,1.4 -2.4,0 -7.2,-2.9 -9.6,-3.8 -2.4,-1 -1.4,-2.8 -1.4,-2.8 L 435,-74.1 l -5.7,0 -3.8,-5.2 c 0,0 -5.7,-3.4 -8.1,-4.3 -2.4,-1 -10.5,-1.4 -10.5,-1.4 l -6.7,0.5 -5.3,-13.9 -4.3,-1.9 0.5,-6.7 1.9,-4.3 -9.1,-12 -6.2,0 -2.9,-1 -2.9,1.9 -6.2,0.5 -4.3,2.9 -3.3,4.3 -5.8,-0.9 -2.9,-8.6 0.5,-5.2 9.6,-5.3 6.2,0 7.2,-4.8 4.8,-1.4 z m 79.4,38.8 4.3,1.4 5.7,0.5 10.1,6.2 0,1.4 -10.1,1.9 -10.5,-7.2 -2.9,-3.3 3.3,-0.9 z m -128.8,1.4 15.8,1.9 8.6,0 3.8,-1.9 7.7,6.7 1.4,-1.9 13.4,1.4 3.3,2.4 0,3.8 7.2,7.7 0.5,4.8 9.6,1.4 11,8.6 2.4,1.9 -5.8,6.2 -4.8,6.7 -4.8,-0.9 -7.2,3.8 -7.7,1.4 c 0,0 -3.8,1.9 -5.8,1.9 -1.9,0 -6.7,-5.8 -6.7,-5.8 l -1.4,-3.8 -2.4,2.9 L 357,-54 l 0,-6.7 -3.3,-7.2 -3.8,-5.8 -3.4,1.9 -8.1,-3.8 -3.8,-2.4 -11.9,5.7 -4.8,2.4 -9.6,0 -5.2,-7.2 -1,-7.2 5.8,-10.1 13.4,-5.3 7.2,-1.4 z"/><path id="België" data-n="België" d="m 581,1 -7.8,2.8 -11.8,12.9 -1.8,7.1 -8.9,2.5 2.1,7.9 -7.8,1.4 -16.8,-5 -10.4,4.6 -1.4,-12.8 6.4,-5.7 -3.6,-4.7 -18.6,0.7 -22.5,12.9 4.6,2.1 -4.6,8.9 13.9,18.6 -11.4,8.9 -8.6,-0.4 -6.4,-8.9 -30,1.1 6.3,8.8 L 424.2,89 l -28.8,21.2 -12.1,0 -18.7,11.6 -3.5,-3.5 -3.5,6.6 -8.6,2 4,-9.1 -3.5,0 -5.1,5 -18.7,-1 1.5,-18.2 L 307.1,97.6 291.9,89 287.4,90.5 275.2,83.4 272.2,90 269.2,88 l -13.6,2 2.5,16.7 -25.2,2.5 -3,-6.6 -10.6,-9.1 2,-3.5 -5.1,-4.6 3,-2 -4.5,-5 8.6,-7.6 -5,-6.1 1,-4.5 -3.5,-4.5 -35.3,13.1 -9.1,-4.6 -3,7.6 -26.3,9.6 -6.6,7.6 -29.3,17.2 -5.1,0.5 -8.1,8.1 L 34.8,150.6 1,166.3 l 5.1,11.6 2.5,19.7 1.5,7.1 7.1,2 -0.5,5.1 6.1,16.7 -12.1,10.1 5.1,1.5 1.5,20.2 -4.5,6.1 5,0 4.6,15.2 7.1,1.5 1.5,-5.1 3.5,4.5 8.6,-1.5 2.5,2.5 0,5.6 9.1,10.1 -0.5,4 5.6,5.1 6.6,10.9 c 10e-7,0 17.5,6.4 17.2,5.2 l 7.6,-3.6 2.4,-4.1 3.3,-3.3 L 105,309.8 l 4.2,-3 3.3,-1.3 2.6,0.4 8,-4.7 10.6,-4.5 7.1,5.1 5.6,-10.1 4,3 6.6,0 0.5,5.1 6.6,9.9 7.2,15.7 7.8,1.4 6.4,7.8 -5,10.7 5,22.9 4.3,25.7 8.6,14.3 17.2,10.7 25.7,-15 12.1,2.2 -8.6,12.8 20,-4.3 15.7,9.3 12.1,20 -3.6,23.6 2.1,15.4 11.2,13.4 4.2,-5.2 2.7,-12.9 16.7,-2.6 13.9,2 11.4,9.3 32,-11.3 28,24.8 3.6,16.4 L 422.8,516 l -1.4,-12.2 12.8,7.9 0,10.7 -15.7,12.1 0.7,21.4 -8.6,10 6.4,2.8 12.8,-1.4 0.7,12.8 7.8,13.6 -9.3,9.3 -10.7,-0.7 -5,12.8 7.9,7.9 -3.6,8.6 12.9,6.4 27.1,-4.3 34.3,12.9 7.1,0 5,-3.6 10,0 7.2,-7.9 5.7,0 5.7,-7.8 12.2,0 15.7,-5 -0.7,-13.6 2.8,-10.7 -3.6,-0.7 3.6,-15 13.6,-7.2 3.6,-10 9.3,-5.7 5,-7.1 4.3,7.1 10.7,-0.7 0.7,5 4.3,0 L 607.8,571 l 1.4,15.7 -5.7,-7.2 -4.3,0.7 1.4,12.9 -5,0 -0.7,6.4 5,2.9 0.7,5.7 -5,0.7 -2.2,14.3 -5,6.4 -0.7,5.7 0.7,3.6 9.3,4.3 2.5,-2.2 4.7,8.9 6.1,2.1 2.2,7.5 -2.9,5.4 -3.6,12.1 -4.3,0 2.8,8.2 3.2,1.4 0,7.5 3.2,2.8 -3.6,0.4 -1.4,6.1 -2.1,3.6 17.1,2.2 8.2,-5.4 6.1,-1.1 6.5,1.2 3.8,7.3 15.1,8.6 6.8,-2.5 9.6,14.9 -0.8,7.1 7.1,0.8 1.2,-3.8 2.3,2.5 2,8.6 20.2,1.8 5.8,-4.3 17.2,17.9 -7.1,9.8 2,8.1 7.6,-2.8 2.5,-6.3 13.6,7.3 7.3,7.8 3,11.1 4.5,-0.2 -3.5,7.1 7.1,5.8 0,4.1 -5.3,4 5.3,4 -0.8,4.3 5.6,-3.8 15.4,-4 2.5,-5.6 11.6,2.8 3.8,6.1 3.3,-5.3 -1.8,-4.3 10.3,-9.8 12.9,5.3 12.1,-0.8 2,-6.6 4.6,-3 5.8,5.6 8.6,0 10.6,-10.6 0,-6.1 -5.6,0.5 0,-4.3 7.6,-4.8 2,-10.9 5.3,-0.8 0,-10.1 -10.6,-5.1 -0.5,-6.6 5.8,-7.6 -6.8,-8.1 -4.3,4 -5,-2 0.8,-10.4 -11.6,-18.9 -8.6,2.3 -4.3,-19.4 4.3,-6.1 -1,-7.8 6.1,1 2.3,-4.3 -13.1,-7.3 6.1,-7.1 4.3,-10.1 -0.2,-9.3 8.1,-1.2 1.8,-3.3 6.6,-2.3 0,-5.3 -4.5,-2.8 -1,-5.8 9.8,-6.6 3.6,-9.6 -4.8,-3.3 1,-4.3 7.1,-4.5 1.8,-13.2 17.4,-8.3 0.8,-17.2 15.4,-4.5 2,8 7.9,3.9 4.6,-2.2 L 927.8,546 l 10.7,2.8 -1.1,4.7 1.8,1.1 -2.5,6.1 5.7,1.1 5.7,-2.5 -1.1,-5.7 -4.3,-1.1 2.5,-3.6 -1.4,-3.6 12.5,-4.6 -2.2,-10.7 -4.3,-6.1 7.8,-6.1 L 961,511 982.8,501 l -3.2,-3.9 7.1,-14.6 5.4,-0.4 7.8,6.8 12.5,-8.6 -2.8,-8.6 -8.2,-5.4 -5.7,-10 6.8,-10 -1.4,-5 2.2,-6.1 -1.8,-8.6 -7.5,-1.8 0.3,-10.7 -9.6,-5.7 -4.3,2.5 -5.7,-3.6 -12.5,4.3 -4.3,-10 -5.3,-2.2 3.2,-4.6 -6.1,-2.2 0.3,-6.8 6.1,-3.6 6.4,-9.7 4.7,0 0,-6.1 7.1,-7.9 -3.6,-2.1 -4.7,2.1 L 952.8,356 l -1.1,4.3 -3.2,-1.4 1.1,-4.6 -3.6,-3.2 5,-2.8 -6.4,-9.7 -5.7,-3.6 -5.7,-14.7 -6.1,-2.1 -6.1,2.1 -7.5,-3.6 -1.8,5 L 910.2,316 l 1.8,-5.7 -6.4,-5.3 -10.4,1.8 -3.2,-3.9 -12.5,5.7 -6.1,-0.7 -0.7,-6.4 -6.6,1.2 -3.5,4.8 -2.5,-4.8 -7.6,4.5 -4.8,-5.3 -2.2,1.5 -3.6,-8.6 -8.1,7.8 -0.2,5.3 -5.3,-4.6 -10.6,3.3 5.4,-10.7 -2.9,-5.3 1.8,-2.9 -1.4,-2.1 -9.3,-3.6 -5,-10 2.1,-11.4 8.6,-5 4.6,-12.2 6.4,2.5 0.7,-8.2 8.2,-12.1 -3.2,-3.6 -5.7,5.7 -1.4,-3.9 12.5,-16.8 -2.1,-6.1 4.6,-5 -6.1,-2.8 3.6,-7.2 0,-4.7 7.5,0.7 -0.3,-5 2.5,-3.9 -4.7,-4.3 4.3,-1.8 5,1.8 0.7,-6.1 -6.1,-2.5 3.9,-7.1 5.7,0 2.5,-5.7 -7.1,-9.3 -12.5,6.1 -2.2,-5.4 1.4,-5.3 -7.2,-3.9 -10.7,2.5 -14.3,-1.8 -0.3,-4.6 -24.7,-11.1 0.4,-15.7 -12.9,-13.2 -7.5,-0.7 -5,6.8 L 752.1,91 l -5.7,10 -19.3,-6.4 -0.7,6.1 -12.5,0.3 -7.2,-2.5 -7.1,2.5 -2.5,-3.6 L 700.2,83.5 689.2,76 l -8.6,5.3 -8.2,-3.9 -0.7,-10.4 -14.6,-20 7.5,-15.7 -6.1,-16.1 -8.6,-0.7 -2.8,-6.8 -8.6,9.3 2.5,4.7 -22.8,26.1 -9.7,-10 -6.1,3.6 -5.3,-3.6 -13.6,2.9 L 579.2,38.5 577.8,31.7 l 4.7,0 11.8,5 -0.7,-11.4 L 595.2,22.4 596.7,11.7 592.8,11.3 590.6,7.4 581,1 z m 44.7,20.7 -7.9,3.6 -2.1,5 7.1,3.2 2.9,-11.8 z"/><path id="Nederland" data-n="Nederland" d="m 904.7,304.1 -0.9,-12.6 6.4,-11.2 14.4,-6.4 3.2,-17.6 -1.6,-11.2 -14.4,0 -1.6,-16 -8,-6.4 -11.2,-1.6 -11.2,1.6 0,-11.2 -8,-6.4 1.6,-14.4 9.6,-4.8 9.6,8 9.6,-4.8 3.2,-11.2 6.4,-8 9.6,1.6 11.2,-12.8 17.6,-8 -1.6,-16 -14.4,3.2 -6.4,0 0,-14.4 0,-14.4 14.4,-14.4 17.6,-20.8 6.4,-6.4 0,-33.5 -1.6,-25.5 -4.8,-17.6 -14.4,-14.4 -11.2,-11.2 0,-27.1 -14.4,-4.8 -3.2,-6.4 -1.6,-19.2 -14.4,-6.4 1.6,-20.8 -6.4,-4.8 0,-11.2 14.4,1.6 8,-6.4 0,-6.4 0.2,0.8 -0.2,-0.8 11.7,2.9 16.9,2.7 -4.1,-10.2 -2.7,-6.8 -6.8,-4.1 8.8,-4.7 6.1,2.7 3.4,2.7 0.7,4.7 8.1,4.1 12.2,0 2,-2.7 5.4,2.7 2.7,6.8 11.5,0 3.4,2.7 0,4.1 11.5,2.7 0.7,-8.1 -5.4,-5.4 0,-4.1 6.8,0 6.1,4.7 4.1,-2 6.1,4.7 6.8,-3.4 0,-3.4 44,-20.3 5.4,1.4 8.1,6.1 8.8,-7.4 3.4,-0.7 4.7,-10.2 -0.7,-8.1 9.5,-1.4 -1.4,-12.2 -4.1,-0.7 -12.9,-11.5 -11.5,-6.8 -7.4,-1.4 -0.7,-6.1 6.1,-7.4 6.1,0 4.1,-3.4 -2,-4.1 3.4,-1.4 0.7,-9.5 c 0,0 21.7,-0.7 24.4,-0.7 2.7,0 5.4,-7.4 5.4,-7.4 l 0.7,-7.4 8.8,-9.5 9.5,-1.4 6.1,-15.6 5.4,-4.1 8.8,0.7 7.4,-4.7 0.7,-2.7 -4.7,-5.4 -4.7,-8.1 1.4,-11.5 10.2,-21 0,-8.1 -4.7,-11.5 -5.4,-2 -6.8,-10.8 -5.4,-13.5 -3.4,-1.4 -8.1,13.5 -22.3,-4.7 -0.7,-4.7 -27.1,-1.4 -12.9,-8.8 1.4,-15.6 -6.8,-12.9 9.5,0.7 2,-4.1 5.4,1.4 4.7,-2.7 -11.5,-10.8 0,-11.5 -2,-4.1 6.1,-5.4 0,-3.4 7.4,0 5.4,-2.7 2.7,1.4 23.7,0 8.1,4.7 7.4,0 5.4,-3.4 8.8,4.1 7.4,0 3.4,-6.1 1.4,-12.2 0.7,-54.8 5.4,-12.2 -2,-4.7 24.4,-37.2 4.1,-25 4.1,-3.4 -6.1,-27.1 0,-15.6 c 0,0 -2,-3.4 -4.7,-5.4 -2.7,-2 2,-8.8 2,-8.8 l 7.4,-22.3 -2,-11.5 -3.4,-17.6 -46.7,-23 -19.6,-12.9 -2.7,-33.8 -50.1,-30.5 -27.7,-28.4 -148.2,-12.2 -242.3,50.8 -144.2,173.3 -124.5,399.3 -179.3,148.2 1.1,163 3.5,4.5 -1,4.5 5.1,6.1 -8.6,7.6 4.5,5.1 -3,2 5.1,4.5 -2,3.5 10.6,9.1 3,6.6 25.3,-2.5 -2.5,-16.7 13.6,-2 3,2 3,-6.6 12.1,7.1 4.5,-1.5 35.4,14.6 -1.5,18.2 18.7,1 5.1,-5.1 3.5,0 -4,9.1 8.6,-2 3.5,-6.6 3.5,3.5 18.7,-11.6 12.1,0 28.8,-21.2 17.7,-24.2 -6.3,-8.8 30,-1.1 6.4,8.9 8.6,0.4 11.4,-8.9 -13.9,-18.6 4.6,-8.9 -4.6,-2.1 22.5,-12.9 18.6,-0.7 3.6,4.6 -6.4,5.7 1.4,12.9 10.4,-4.6 16.8,5 c 0,0 7.9,-1.4 7.9,-1.4 l -2.1,-7.9 8.9,-2.5 1.8,-7.1 6.1,-5.9 L 573.1,3.9 581,1 l 9.6,6.4 2.1,3.9 3.9,0.4 -1.4,10.7 -1.8,2.9 0.7,11.4 -11.8,-5 -4.6,0 1.4,6.8 4.3,2.1 0,0 13.6,-2.9 5.4,3.6 6.1,-3.6 9.6,10 22.9,-26.1 -2.5,-4.6 8.6,-9.3 2.9,6.8 8.6,0.7 6.1,16.1 -7.5,15.7 14.6,20 0.7,10.4 8.2,3.9 L 689.2,76 l 11.1,7.5 -3.2,13.9 2.5,3.6 7.1,-2.5 7.1,2.5 12.5,-0.4 0.7,-6.1 19.3,6.4 5.7,-10 5.7,0.7 5,-6.8 7.5,0.7 12.9,13.2 -0.4,15.7 24.6,11.1 0.4,4.6 14.3,1.8 10.7,-2.5 7.1,3.9 -1.4,5.4 2.1,5.4 12.5,-6.1 7.1,9.3 -2.5,5.7 -5.7,0 -3.9,7.1 6.1,2.5 -0.7,6.1 -5,-1.8 -4.3,1.8 4.6,4.3 -2.5,3.9 0.4,5 -7.5,-0.7 0,4.6 -3.6,7.1 6.1,2.9 -4.6,5 2.1,6.1 -12.5,16.8 1.4,3.9 5.7,-5.7 3.2,3.6 -1.9,2.2 -6.3,9.9 -0.7,8.2 -6.4,-2.5 -4.6,12.1 -8.6,5 -2.1,11.4 5,10 9.3,3.6 0.3,7.7 4.1,0.7 -7.2,12.7 10.5,-3.3 5.3,4.5 0.3,-5.3 8.1,-7.8 3.5,8.6 2.3,-1.5 4.8,5.3 7.6,-4.5 2.5,4.8 3.5,-4.8 6.6,-1.3 0.7,6.4 6.1,0.7 12.5,-5.7 3.2,3.9 9.4,-2.6 z"/><path id="Luxemburg" data-n="Luxemburg" d="m 937.1,560.9 -0.4,4.5 0.2,15.6 -4.3,9.1 -1.6,22.4 6.4,16 4.8,14.4 12.8,1.6 9.6,19.2 3.2,11.2 11.2,6.4 6.4,11.2 8,-1.6 20.8,16 24,0 -3.2,8 -3.2,24 0,9.6 m 0,0 -17.6,9.6 0,0 -6.2,4.6 2.7,6.8 3.4,5.4 -11,8.8 -9.3,14.3 -0.7,6.8 4.7,7.4 -1.4,8.8 c 0,0 -4.1,2 -4.1,4.7 0,2.7 0.7,14.9 0.7,14.9 l -2.8,7 -19.2,-14.4 -11.2,-8 -17.6,0 -16,19.2 -11.2,0 -6.4,6.4 -12.8,0 -4.8,-8 -8,-8 -16.4,-9.3 -7.8,-17.9 0,-2.4 7.1,-1.3 10.6,-10.6 0,-6.1 -5.6,0.5 0,-4.3 7.6,-4.8 2,-10.9 5.3,-0.8 0,-10.1 -10.6,-5.1 -0.5,-6.6 5.8,-7.6 -6.8,-8.1 -4.3,4 -5.1,-2 0.8,-10.4 -11.6,-18.9 -8.6,2.3 c 0,0 -4.3,-19.4 -4.3,-19.4 l 4.3,-6.1 -1,-7.8 6.1,1 2.3,-4.3 -13.1,-7.3 6.1,-7.1 4.3,-10.1 -0.3,-9.3 8.1,-1.3 1.8,-3.3 6.6,-2.3 0,-5.3 -4.5,-2.8 -1,-5.8 9.8,-6.6 3.5,-9.6 -4.8,-3.3 1,-4.3 7.1,-4.5 1.8,-13.1 17.4,-8.3 0.8,-17.2 15.4,-4.5 2,8 7.9,3.9 4.6,-2.1 1.1,-5.4 10.7,2.9 -1.1,4.6 1.8,1.1 -2.1,6.3"/><path class="b" d="m 858.9,804.7 -0,2.4 7.8,17.9 16.4,9.3 8,8 4.8,8 12.8,0 6.4,-6.4 11.2,0 16,-19.2 17.6,0 11.2,8 16,12.8 3.2,1.6 13,-5.6 8.1,0 9.5,8.1 5.4,1.4 12.2,11.5 1.4,12.9 10.8,6.8 -5.4,12.9 23,24.4 0.7,7.4 c 0,0 6.8,-0.7 5.4,3.4 -1.4,4.1 -0.7,10.8 -0.7,10.8 l 6.8,4.1 7.4,-0.7 -4.7,10.8 0.7,8.1 c 0,0 9.5,6.1 14.2,6.1 4.7,0 17.6,-1.4 17.6,-1.4 l 6.1,-6.1 -0.7,-6.1 -3.4,-4.1 2,-6.1 9.5,-0.7 14.2,0 19.6,11.5 2.7,14.2 5.4,12.9 8.1,0 0,-8.1 6.1,-0.7 c 0,0 2.7,5.4 6.1,5.4 3.4,0 2.7,4.7 8.1,4.7 5.4,0 23.7,0 23.7,0 l 6.8,4.1 10.2,-6.8 8.1,-2 5.4,-7.4 c 0,0 -2.7,-4.1 0,-4.7 2.7,-0.7 14.2,-4.7 14.2,-4.7 l 6.1,0.7 4.1,6.1 16.2,1.4"/></g></svg><p style="font-size:.75rem;margin:6px 0 0">Klik op een land.</p>`;
+
+/* ===== LEADERBOARD ===== */
+const useFB = !!(firebaseConfig.apiKey && firebaseConfig.databaseURL && window.firebase);
+let db = null;
+if (useFB) { firebase.initializeApp(firebaseConfig); db = firebase.database().ref("scores"); }
+const $ = id => document.getElementById(id);
+function render(list){
+  list.sort((a,b)=>b.score-a.score);
+  $("bl").innerHTML = list.slice(0,15).map((s,i)=>`<li><span class="r">${i+1}</span><span class="n">${s.name}</span><span class="l">${s.level}</span><span class="p">${s.score}</span></li>`).join("") || "<li>Nog geen scores</li>";
+}
+function loadBoard(){
+  if (useFB) { db.limitToLast(200).on("value", sn => { const a=[]; sn.forEach(c=>a.push(c.val())); render(a); }); }
+  else { $("bsub").textContent="Lokaal leaderboard (geen Firebase ingesteld)"; render(JSON.parse(localStorage.getItem("mq_scores")||"[]")); }
+}
+function saveScore(s){
+  if (useFB) return db.push(s);
+  try { const a=JSON.parse(localStorage.getItem("mq_scores")||"[]"); a.push(s); localStorage.setItem("mq_scores",JSON.stringify(a)); render(a); } catch(e){ render([s]); }
+}
+
+/* ===== GAME ===== */
+const T = 15, N = 10, LET = ["A","B","C","D"];
+let tag="", level="", qs=[], i=0, score=0, t0=0, tick=null, locked=false;
+const shuffle = a => { a=a.slice(); for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]];} return a; };
+const show = id => ["s-start","s-play","s-end"].forEach(s=>$(s).classList.toggle("hide",s!==id));
+
+$("tag").addEventListener("input",e=>{
+  e.target.value=e.target.value.replace(/[^a-zA-Z]/g,"").toUpperCase().slice(0,10);
+  tag=e.target.value; document.querySelectorAll("#lv button").forEach(b=>b.disabled=tag.length<1);
+});
+document.querySelectorAll("#lv button").forEach(b=>b.onclick=()=>start(b.dataset.l));
+$("again").onclick=()=>{show("s-start");};
+
+function start(l){
+  level=l; qs=shuffle(P[l]).slice(0,N); i=0; score=0; $("sc").textContent=0; show("s-play"); next();
+}
+function next(){
+  if(i>=qs.length) return end();
+  locked=false; const q=qs[i];
+  $("lab").textContent=level; $("cnt").textContent=`Vraag ${i+1} van ${N}`; $("fb").textContent=""; $("fb").style.color="";
+  $("q").textContent=q[1];
+  const im=$("qimg"), an=$("ans"), mw=$("mapwrap"); an.innerHTML=""; mw.innerHTML="";
+  im.classList.toggle("hide",q[0]!=="img"); an.classList.toggle("hide",q[0]==="map"); mw.classList.toggle("hide",q[0]!=="map");
+  if(q[0]==="img"){ im.src=q[4]; im.alt="Afbeelding bij de vraag"; }
+  if(q[0]==="map"){
+    mw.innerHTML=MAP; q.correct=q[2];
+    mw.querySelectorAll("path").forEach(p=>p.onclick=()=>answer(p.dataset.n===q[2],p));
+  } else {
+    const right=q[2][q[3]]; q.correct=right;
+    shuffle(q[2]).forEach((o,k)=>{
+      const b=document.createElement("button"); b.innerHTML=`<i>${LET[k]}</i><span></span>`; b.lastChild.textContent=o;
+      b.onclick=()=>answer(o===right,b); b.dataset.o=o; an.appendChild(b);
+    });
+  }
+  t0=performance.now(); clearInterval(tick);
+  tick=setInterval(()=>{
+    const left=Math.max(0,T-(performance.now()-t0)/1000);
+    const f=$("tfill"); f.style.width=(left/T*100)+"%"; f.style.background=left>8?"var(--mint)":left>4?"var(--amber)":"var(--red)";
+    if(left<=0) answer(false,null,true);
+  },50);
+}
+function answer(ok,el,timeout){
+  if(locked) return; locked=true; clearInterval(tick);
+  const used=Math.min(T,(performance.now()-t0)/1000);
+  const pts=ok?Math.max(50,Math.round(1000*(1-used/T))):0; score+=pts; $("sc").textContent=score;
+  const q=qs[i];
+  if(q[0]==="map"){ $("map").classList.add("lock"); if(el) el.classList.add(ok?"ok":"no"); $(q.correct).classList.add("ok"); }
+  else document.querySelectorAll("#ans button").forEach(b=>{ b.disabled=true; if(b.dataset.o===q.correct) b.classList.add("ok"); else if(b===el) b.classList.add("no"); });
+  $("fb").style.color=ok?"var(--mint)":"var(--red)";
+  $("fb").textContent=ok?`Goed! +${pts} punten`:(timeout?"Tijd op! ":"Helaas. ")+"Het juiste antwoord: "+q.correct;
+  i++; setTimeout(next, ok?1200:2400);
+}
+function end(){
+  show("s-end"); $("final").textContent=score;
+  $("endmsg").textContent=score>=7000?"Topscore, echte Quizmaster!":score>=4000?"Sterk gespeeld!":"Goed geprobeerd, speel nog een keer!";
+  saveScore({name:tag,score:score,level:level,ts:Date.now()});
+}
+loadBoard();
+</script>
+</body>
+</html>
